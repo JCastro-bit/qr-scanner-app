@@ -17,17 +17,31 @@ export default function ScannerScreen() {
     getBarCodeScannerPermissions();
   }, []);
 
-  // En el método handleBarCodeScanned del scanner.tsx
-  const handleBarCodeScanned = async ({ data }: { data: string }) => {
-    setScanned(true);
+  const handleBarCodeScanned = ({ type, data }: { type: string, data: string }) => {
     try {
+      setScanned(true);
+      console.log('Código escaneado:', data);
+      
+      // Validar que el código QR tenga datos
+      if (!data || typeof data !== 'string') {
+        throw new Error('Código QR inválido');
+      }
+
       router.push({
-        pathname: '/(screens)/details' as any,
-        params: { code: data }
+        pathname: '/details',
+        params: { code: data.trim() }
       });
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo procesar el código QR');
-      setScanned(false);
+    } catch (error: any) {
+      Alert.alert(
+        'Error',
+        error.message || 'No se pudo procesar el código QR',
+        [
+          {
+            text: 'OK',
+            onPress: () => setScanned(false)
+          }
+        ]
+      );
     }
   };
 

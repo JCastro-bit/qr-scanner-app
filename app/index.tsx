@@ -2,7 +2,7 @@
 import { useCallback, useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
+import { Link } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface ScanHistoryItem {
@@ -13,16 +13,7 @@ interface ScanHistoryItem {
 }
 
 export default function HomeScreen() {
-  const [history, setHistory] = useState<ScanHistoryItem[]>([]);
-
-  // En los métodos de navegación del index.tsx
-  const handleScanPress = useCallback(() => {
-    router.push('/(screens)/scanner' as any);
-  }, []);
-
-  const handleHistoryPress = useCallback(() => {
-    router.push('/(screens)/history' as any);
-  }, []);
+  const [history] = useState<ScanHistoryItem[]>([]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -34,23 +25,21 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.content}>
-        <TouchableOpacity
-          style={styles.scanButton}
-          onPress={handleScanPress}
-        >
-          <MaterialIcons name="qr-code-scanner" size={32} color="white" />
-          <Text style={styles.buttonText}>Escanear QR</Text>
-        </TouchableOpacity>
+        <Link href="/scanner" asChild>
+          <TouchableOpacity style={styles.scanButton}>
+            <MaterialIcons name="qr-code-scanner" size={32} color="white" />
+            <Text style={styles.buttonText}>Escanear QR</Text>
+          </TouchableOpacity>
+        </Link>
 
-        <TouchableOpacity
-          style={styles.historyButton}
-          onPress={handleHistoryPress}
-        >
-          <MaterialIcons name="history" size={24} color="#1a1a1a" />
-          <Text style={[styles.buttonText, { color: '#1a1a1a' }]}>
-            Ver Historial
-          </Text>
-        </TouchableOpacity>
+        <Link href="/history" asChild>
+          <TouchableOpacity style={styles.historyButton}>
+            <MaterialIcons name="history" size={24} color="#1a1a1a" />
+            <Text style={[styles.buttonText, { color: '#1a1a1a' }]}>
+              Ver Historial
+            </Text>
+          </TouchableOpacity>
+        </Link>
       </View>
     </SafeAreaView>
   );
