@@ -31,7 +31,7 @@
     "plugins": [
       "expo-router",
       [
-        "expo-barcode-scanner",
+        "expo-camera",
         {
           "cameraPermission": "La aplicación necesita acceso a la cámara para escanear códigos QR."
         }
