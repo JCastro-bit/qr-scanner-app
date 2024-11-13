@@ -24,7 +24,9 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "CAMERA"
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ],
       "package": "com.qrscanner.app"
     },
@@ -36,6 +38,14 @@
           "cameraPermission": "La aplicación necesita acceso a la cámara para escanear códigos QR."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "8ad8ee21-8f01-4880-b344-190f889eff04"
+      }
+    }
   }
 }

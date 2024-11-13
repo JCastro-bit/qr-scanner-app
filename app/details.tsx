@@ -1,6 +1,5 @@
-// app/details.tsx
 import { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { invitationService, Invitation } from './services/api';
 
@@ -25,24 +24,24 @@ export default function DetailsScreen() {
       setLoading(true);
       setError(null);
       console.log('Consultando invitación:', code);
-      
+
       const data = await invitationService.validateInvitation(code);
-      
+
       if (!data || !data.guests) {
         throw new Error('Invitación no válida');
       }
       console.log('Datos de invitación:', data);
       setInvitation(data);
-      
+
       // Inicializar estado de asistencia
       const initialAttendance: Record<number, boolean> = {};
       data.guests.forEach(guest => {
         if (guest && guest.id) {
-          initialAttendance[guest.id] = Boolean(guest.didAttend);
+          initialAttendance[guest.id] = guest.didAttend === true;
         }
       });
       setGuestAttendance(initialAttendance);
-      
+
     } catch (err: any) {
       console.error('Error al cargar invitación:', err);
       setError(err.message || 'Error al cargar la invitación');
@@ -55,28 +54,44 @@ export default function DetailsScreen() {
     if (!invitation?.id) return;
     try {
       setLoading(true);
-      console.log('Marcando asistencia:', guestAttendance);
-      
+      console.log('Estado actual de asistencia:', guestAttendance);
+
       const updatedGuests = await invitationService.markAttendance(
         invitation.id,
         guestAttendance
       );
-      
-      if (!updatedGuests) {
-        throw new Error('No se pudo actualizar la asistencia');
-      }
 
-      setInvitation(prev => prev ? {
-        ...prev,
-        guests: updatedGuests
-      } : null);
+      setInvitation(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          guests: updatedGuests
+        };
+      });
 
-      alert('Asistencia registrada correctamente');
-      router.replace('/');
-      
+      Alert.alert(
+        'Éxito',
+        'La asistencia se ha registrado correctamente',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.replace('/');
+            }
+          }
+        ]
+      );
     } catch (err: any) {
-      console.error('Error al registrar asistencia:', err);
-      setError(err.message || 'Error al registrar la asistencia');
+      Alert.alert(
+        'Error',
+        err.message || 'No se pudo registrar la asistencia. Por favor, intenta de nuevo.',
+        [
+          {
+            text: 'OK',
+            onPress: () => setLoading(false)
+          }
+        ]
+      );
     } finally {
       setLoading(false);
     }
@@ -94,7 +109,7 @@ export default function DetailsScreen() {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.button}
           onPress={() => router.back()}
         >
@@ -108,7 +123,7 @@ export default function DetailsScreen() {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.errorText}>No se encontró la invitación</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.button}
           onPress={() => router.back()}
         >
@@ -122,15 +137,15 @@ export default function DetailsScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.title}>{invitation.mainGuestName}</Text>
-        <Text style={styles.subtitle}>
-          Mesa {invitation.guests[0]?.tableNumber || 'Sin asignar'}
-        </Text>
-        
+
         <View style={styles.guestsList}>
           <Text style={styles.sectionTitle}>Invitados:</Text>
           {invitation.guests.map((guest) => (
             <View key={guest.id} style={styles.guestItem}>
-              <Text style={styles.guestName}>{guest.name}</Text>
+              <View style={styles.guestInfo}>
+                <Text style={styles.guestName}>{guest.name}</Text>
+                <Text style={styles.tableBadge}>Mesa {guest.tableNumber}</Text>
+              </View>
               <TouchableOpacity
                 onPress={() => setGuestAttendance(prev => ({
                   ...prev,
@@ -186,12 +201,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
@@ -205,12 +215,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
+  guestInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   guestName: {
     fontSize: 16,
+    fontWeight: '500',
+    flex: 1,
+  },
+  tableBadge: {
+    fontSize: 15,
+    color: '#2196F3',
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    fontWeight: '600',
+    minWidth: 80,
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: '#90CAF9',
   },
   checkbox: {
     width: 24,
@@ -220,6 +251,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 16,
   },
   checkboxChecked: {
     backgroundColor: '#2196F3',
