@@ -1,19 +1,29 @@
 // app/index.tsx
-import { useCallback, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, TextInput, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
-interface ScanHistoryItem {
-  code: string;
-  timestamp: Date;
-  status: 'success' | 'error';
-  message: string;
-}
-
 export default function HomeScreen() {
-  const [history] = useState<ScanHistoryItem[]>([]);
+  const [showInput, setShowInput] = useState(false);
+  const [invitationCode, setInvitationCode] = useState('');
+
+  const handleManualCode = () => {
+    if (!invitationCode.trim()) {
+      Alert.alert('Error', 'Por favor ingresa un código de invitación');
+      return;
+    }
+
+    router.push({
+      pathname: '/details',
+      params: { code: invitationCode.trim().toUpperCase() }
+    });
+    
+    // Limpiar después de navegar
+    setInvitationCode('');
+    setShowInput(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -32,14 +42,36 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </Link>
 
-        <Link href="/history" asChild>
-          <TouchableOpacity style={styles.historyButton}>
-            <MaterialIcons name="history" size={24} color="#1a1a1a" />
+        {!showInput ? (
+          <TouchableOpacity 
+            style={styles.manualButton}
+            onPress={() => setShowInput(true)}
+          >
+            <MaterialIcons name="keyboard" size={24} color="#1a1a1a" />
             <Text style={[styles.buttonText, { color: '#1a1a1a' }]}>
-              Ver Historial
+              Ingresar Código
             </Text>
           </TouchableOpacity>
-        </Link>
+        ) : (
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={invitationCode}
+              onChangeText={setInvitationCode}
+              placeholder="Código de invitación"
+              autoCapitalize="characters"
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleManualCode}
+            />
+            <TouchableOpacity 
+              style={styles.submitButton}
+              onPress={handleManualCode}
+            >
+              <MaterialIcons name="arrow-forward" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -89,7 +121,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  historyButton: {
+  manualButton: {
     backgroundColor: '#e0e0e0',
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -97,6 +129,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+    maxWidth: 300,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: 'white',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  submitButton: {
+    backgroundColor: '#2196F3',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
     fontSize: 18,
